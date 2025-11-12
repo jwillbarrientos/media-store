@@ -1,4 +1,5 @@
 downloads/
 logs/
-/downloaders/ffmpeg/presets/
-/db/
+downloaders/ffmpeg/presets/
+db/*.db
+tf/

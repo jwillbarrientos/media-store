@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Video Reels</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; overflow: hidden; background: #000; }
+        .reel-container {
+            height: calc(var(--vh, 1vh) * 100);
+        }
+        .video-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .video-wrapper video {
+            max-height: 90%;
+            max-width: 50vh; /* vertical “portrait” */
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            border-radius: 12px;
+            position: absolute;
+            top: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 0.45s ease-in-out;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: calc(30px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px; /* espacio entre botones */
+            flex-wrap: nowrap; /* nunca se rompen a otra fila */
+            justify-content: center; /* centrado horizontal */
+        }
+
+        .control-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 14px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background 0.3s;
+        }
+
+        .control-button:hover { background: rgba(255, 255, 255, 0.5); }
+        .home-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 20;
+            transition: background 0.3s;
+        }
+        .home-button:hover { background: rgba(255, 255, 255, 0.5); }
+    </style>
+</head>
+<body>
+
+<button id="home-btn" class="home-button">🏠 Home</button>
+
+<div class="reel-container">
+    <div id="video-wrapper" class="video-wrapper">
+        <video id="video-player" autoplay muted playsinline></video>
+    </div>
+    <div class="controls">
+        <button id="delete-btn" class="control-button">🗑️</button>
+        <button id="download-btn" class="control-button">⬇️</button>
+        <button id="sound-btn" class="control-button">🔇</button>
+        <button id="action-btn" class="control-button">⭐</button>
+    </div>
+</div>
+
+<!-- Tag Selection Modal -->
+<div id="tag-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); color: white; z-index: 50; align-items: center; justify-content: center;">
+    <div style="background: #111; padding: 20px; border-radius: 12px; max-width: 320px; width: 90%; text-align: left;">
+        <h2 style="margin-bottom: 10px;">Manage Tags</h2>
+        <div id="tag-list" style="max-height: 300px; overflow-y: auto;"></div>
+        <button id="close-modal" class="control-button" style="margin-top: 15px;">Close</button>
+    </div>
+</div>
+
+<script type="module">
+    import { myFetch } from "../java-script/myfetch.js";
+    // ---- Global elements ----
+    let videoEl = document.getElementById("video-player");
+    const wrapper = document.getElementById("video-wrapper");
+    const downloadBtn = document.getElementById("download-btn");
+    const actionBtn = document.getElementById("action-btn");
+    const soundBtn = document.getElementById("sound-btn");
+    const homeBtn = document.getElementById("home-btn");
+    const deleteBtn = document.getElementById("delete-btn");
+    const tagModal = document.getElementById("tag-modal");
+    const tagList = document.getElementById("tag-list");
+    const closeModal = document.getElementById("close-modal");
+
+    // ---- State ----
+    let videos = [];
+    let currentIndex = 0;
+    let isTransitioning = false;
+
+    // ---- Load videos from API/localStorage ----
+    async function loadVideos() {
+        try {
+            const savedTag = localStorage.getItem('selectedTag') || 'all';
+            const savedList = localStorage.getItem('videoList');
+            if (savedList) {
+                videos = JSON.parse(savedList);
+                console.log(`Loaded ${videos.length} videos from localStorage (tag: ${savedTag})`);
+            } else {
+                const res = await myFetch(`/api/getvideosforreel?tag=${savedTag}`);
+                if (!res.ok) throw new Error(`Failed to fetch videos (${res.status})`);
+                videos = await res.json();
+                console.log(`Fetched ${videos.length} videos for tag "${savedTag}"`);
+            }
+            if (videos.length > 0) {
+                loadVideo(currentIndex);
+            } else {
+                alert("No videos found for this category.");
+            }
+        } catch (err) {
+            console.error("Error loading videos:", err);
+            alert("Error loading videos. Check console for details.");
+        }
+    }
+
+    function getVideoId(video) { return typeof video === 'object' && video.id ? video.id : video; }
+
+    function loadVideo(index) {
+        if (!videos[index]) return;
+        const videoId = getVideoId(videos[index]);
+        videoEl.src = `/api/streamingvideos?id=${videoId}`;
+        videoEl.play();
+    }
+
+    // ---- Create and slide video ----
+    function createVideoElement(id, inheritMuted = true) {
+        const v = document.createElement("video");
+        v.src = `/api/streamingvideos?id=${id}`;
+        v.autoplay = true;
+        v.playsInline = true;
+        v.muted = !!inheritMuted;
+        v.style.position = "absolute";
+        v.style.top = "5vh";
+        v.style.left = "50%";
+        v.style.width = "auto";
+        v.style.height = "auto";
+        v.style.maxHeight = "90%";
+        v.style.maxWidth = "50vh"; // mantiene vertical
+        v.style.objectFit = "cover";
+        v.style.position = "absolute";
+        v.style.top = "5vh";
+        v.style.left = "50%";
+        v.style.transform = "translateX(-50%)";
+        v.style.transition = "top 0.45s ease-in-out";
+        v.addEventListener("click", () => {
+            if (v.paused) v.play();
+            else v.pause();
+        });
+        return v;
+    }
+
+    function slideToVideo(index, direction = "next") {
+        if (isTransitioning) return;
+        if (!videos[index]) return;
+        isTransitioning = true;
+        try { videoEl.pause(); } catch (e) {}
+        const nextId = getVideoId(videos[index]);
+        const newVideo = createVideoElement(nextId, videoEl.muted);
+        // Position off-screen
+        newVideo.style.top = direction === "next" ? "100%" : "-100%";
+        wrapper.appendChild(newVideo);
+        // Trigger layout reflow
+        void newVideo.offsetHeight;
+        // Animate both
+        videoEl.style.top = direction === "next" ? "-100%" : "100%";
+        newVideo.style.top = "5vh";
+        const onTransitionEnd = (ev) => {
+            if (ev.propertyName !== "top") return;
+            try { videoEl.remove(); } catch (e) {}
+            newVideo.id = "video-player";
+            videoEl = newVideo;
+            try { videoEl.play().catch(()=>{}); } catch(e){}
+            newVideo.removeEventListener("transitionend", onTransitionEnd);
+            isTransitioning = false;
+        };
+        newVideo.addEventListener("transitionend", onTransitionEnd);
+    }
+
+    function showNextVideo() {
+        if (isTransitioning) return;
+        currentIndex = (currentIndex + 1) % videos.length;
+        slideToVideo(currentIndex, "next");
+    }
+
+    function showPrevVideo() {
+        if (isTransitioning) return;
+        currentIndex = (currentIndex - 1 + videos.length) % videos.length;
+        slideToVideo(currentIndex, "prev");
+    }
+
+    // ---- Swipe detection ----
+    let startY = 0;
+    window.addEventListener("touchstart", e => { startY = e.touches[0].clientY; });
+    window.addEventListener("touchend", e => {
+        const endY = e.changedTouches[0].clientY;
+        const diffY = startY - endY;
+        if (Math.abs(diffY) > 50) { diffY > 0 ? showNextVideo() : showPrevVideo(); }
+    });
+
+    // ---- Keyboard and wheel controls ----
+    window.addEventListener("keydown", e => { if (e.key === "ArrowUp") showPrevVideo(); if (e.key === "ArrowDown") showNextVideo(); });
+    window.addEventListener("wheel", e => { if (isTransitioning) return; if (e.deltaY > 0) showNextVideo(); else if (e.deltaY < 0) showPrevVideo(); });
+
+    // ---- Control buttons ----
+    downloadBtn.addEventListener("click", async () => {
+        const id = getVideoId(videos[currentIndex]);
+        try {
+            const res = await fetch(`/api/downloadvideo?id=${id}`);
+            if (!res.ok) { throw new Error("Error downloading the video") }
+
+            const blob = await res.blob();
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+
+            const cd = res.headers.get("Content-Disposition");
+            let fileName = "video.mp4";
+            if (cd && cd.includes("filename=")) {
+                fileName = cd.split("filename=")[1].replace(/"/g, "");
+            }
+
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error downloading the video: ", err);
+            alert("The video can't be downloaded");
+        }
+    });
+
+    soundBtn.addEventListener("click", () => { if (!videoEl) return; videoEl.muted = !videoEl.muted; soundBtn.textContent = videoEl.muted ? "🔇" : "🔊"; });
+    homeBtn.addEventListener("click", () => { window.location.href = "/app/welcome-page.html"; });
+
+    // ---- Click to pause/play ----
+    videoEl.addEventListener("click", () => { if (videoEl.paused) videoEl.play(); else videoEl.pause(); });
+
+    // ---- Delete video ----
+    deleteBtn.addEventListener("click", async () => {
+        const id = getVideoId(videos[currentIndex]);
+        if (!id) return;
+        if (!confirm("Are you sure you want to delete this video?")) return;
+        try {
+            const res = await myFetch(`/api/deletevideo?id=${id}`, { method: "GET" });
+            if (!res.ok) throw new Error(`Failed (${res.status})`);
+            alert("Video deleted successfully!");
+            videos.splice(currentIndex, 1);
+            if (videos.length === 0) { alert("No more videos left."); videoEl.pause(); videoEl.src = ""; return; }
+            if (currentIndex >= videos.length) currentIndex = 0;
+            slideToVideo(currentIndex, "next");
+        } catch (err) { console.error(err); alert("Error deleting video."); }
+    });
+
+    // ---- Manage Tags ----
+    actionBtn.addEventListener("click", async () => {
+        const videoId = getVideoId(videos[currentIndex]);
+        try {
+            const allTagsRes = await myFetch("/api/loadtagsinreelspage");
+            if (!allTagsRes.ok) throw new Error("Failed to load all tags");
+            const allTags = await allTagsRes.json();
+            const videoTagsRes = await myFetch(`/api/gettagsforvideo?id=${videoId}`);
+            if (!videoTagsRes.ok) throw new Error("Failed to load video tags");
+            const videoTags = await videoTagsRes.json();
+            const assignedTagNames = videoTags.map(t => t.tagId);
+            tagList.innerHTML = "";
+            allTags.forEach(tag => {
+                if (!tag) return;
+                const wrapper = document.createElement("div");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.id = `tag-${tag.id}`;
+                checkbox.checked = assignedTagNames.includes(tag.id);
+                checkbox.addEventListener("change", async () => {
+                    try {
+                        if (checkbox.checked) {
+                            const res = await myFetch(`/api/addtagtovideo?videoId=${videoId}&tagId=${tag.id}`, {method: "GET"});
+                            if (!res.ok) throw new Error("Failed to add tag");
+                        } else {
+                            const res = await myFetch(`/api/deletetagvideo?videoId=${videoId}&tagId=${tag.id}`, {method: "GET"});
+                            if (!res.ok) throw new Error("Failed to remove tag");
+                        }
+                    } catch (err) { console.error("Tag updated error: ", err); alert("Error updating tag."); checkbox.checked = !checkbox.checked; }
+                });
+                const label = document.createElement("label");
+                label.htmlFor = checkbox.id;
+                label.textContent = " " + tag.name;
+                wrapper.appendChild(checkbox);
+                wrapper.appendChild(label);
+                tagList.appendChild(wrapper);
+            });
+            tagModal.style.display = "flex";
+        } catch (err) { console.error("Error fetching tags: ", err); alert("Failed to load tags."); }
+    });
+
+    function setVh() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    window.addEventListener('resize', setVh);
+    setVh();
+
+    closeModal.addEventListener("click", () => { tagModal.style.display = "none"; });
+
+    // ---- Start ----
+    loadVideos();
+</script>
+
+</body>
+</html>

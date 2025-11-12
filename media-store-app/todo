@@ -1,0 +1,18 @@
+Cambios con tio
+-Hacer el tema de que cuando pusheo se hacen los cambios automaticamente a mi server
+-Agregar vpn
+
+Cambio para algun futuro
+-Hacer que funcione como una aplicacion web
+-Hacer un tipo de cliente administrador(cuando tenga spring)
+
+Hecho
+-Si ya hay un tag que se llama exactamente igual a uno ya existente en el mismo cliente, no dejar crear
+-Hacer que cuando se borre un video borre tambien sus video tags
+-Hacer un boton para borrar usuario y cambiar contrasena
+-Hacer que se elimine los videos de mi server que ya no esta relacionado a ningun cliente en la base de datos
+-Metodo myfetch para js
+-Arreglar la funcion de descargar un video
+-Arreglar el codec de algunos videos, un video de youtube en especifico no esta funcionando bien por alguna razon, y todos los videos de tiktok no andan
+-Hacer que mi server siempre corra sin estar abierto mi terminal
+-Hacer un cambio en el html para que los reels se vean mejor en celular

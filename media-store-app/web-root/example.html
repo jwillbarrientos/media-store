@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jonathan</title>
+</head>
+<body>
+Hello World
+<br>
+<button id="colorButton">Random color</button>
+<button id="defaultColor">Default color</button>
+<h1>Fetch Data Example</h1>
+
+<button id="setCookie">Set Cookie</button>
+<button id="fetchButton">Get Data</button>
+<button id="deleteCookies">Delete Cookie</button>
+<br>
+<!-- Container for the new divs -->
+<div id="dataContainer"></div>
+<div class="cert-row">
+    <div>
+        <p>Java Certified Foundations Associate</p>
+        <a href="https://catalog-education.oracle.com/ords/certview/sharebadge?id=0C98D28B68C287C6C7AFBC10C7135E8CEE3E893D72E680F64D34C808F51F64A8">
+            <img src="images/JAVA8OJA.png" alt="Java Certified Foundations Associate">
+        </a>
+    </div>
+    <div>
+        <p>Oracle Certified Associate, Java SE 8 Programmer</p>
+        <a href="https://catalog-education.oracle.com/ords/certview/sharebadge?id=AD4F9B55C95C6F02CB9AD35A3233E9A7E7EE84B8BB67D79594685C5D6E6417DE">
+            <img src="images/OCAJSE8.png" alt="Oracle Certified Associate, Java SE 8 Programmer">
+        </a>
+    </div>
+    <div>
+        <p>The Big Bang Theory<br>intro</p>
+        <video controls src="videos/thebigbangtheoryintro.mp4" type="video/mp4"></video>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const button = document.getElementById("colorButton");
+
+        button.addEventListener("click", () => {
+            const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+            document.body.style.backgroundColor = randomColor;
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const button = document.getElementById("defaultColor");
+
+        button.addEventListener("click", () => {
+            document.body.style.backgroundColor = "#FFFFFF";
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const button = document.getElementById("fetchButton");
+        const container = document.getElementById("dataContainer");
+
+        button.addEventListener("click", async () => {
+            try {
+                var response = await fetch("/getdate");
+
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+
+                var data = await response.text();
+
+                // Create a new div element
+                const newDiv = document.createElement("div");
+                newDiv.textContent = `Server time: ${data}`;
+
+                // Add it to the page
+                container.appendChild(newDiv);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const setCookieBtn = document.getElementById("setCookie");
+        setCookieBtn.addEventListener("click", async () => {
+            try {
+                const response = await fetch("/setcookie");
+                if (!response.ok) {
+                    throw new Error("Failed to set cookie");
+                }
+                alert("✅ Cookie set! (Check devtools -> Application -> Cookies)");
+                console.log("✅ Cookie set! (Check devtools -> Application -> Cookies)");
+            } catch (err) {
+                console.error("Error setting cookie:", err);
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const deleteCookieBtn = document.getElementById("deleteCookies");
+        deleteCookieBtn.addEventListener("click", async () => {
+            try {
+                const response = await fetch("/deletecookies");
+                if (!response.ok) {
+                    throw new Error("Failed to delete cookie");
+                }
+                alert("🗑️ Cookie deleted!");
+                console.log("🗑️ Cookie deleted!");
+            } catch (err) {
+                console.error("Error deleting cookie:", err);
+            }
+        });
+    });
+</script>
+</body>
+</html>

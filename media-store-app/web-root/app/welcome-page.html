@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Media-Store</title>
+
+    <style>
+        body {
+
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f7f9fc;
+            color: #333;
+        }
+
+        /* Top Bar */
+        header {
+            background: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .logo {
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .profile {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #signOutBtn {
+            background: transparent;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        #signOutBtn:hover {
+            color: #0056b3;
+        }
+
+        #changePasswordBtn,
+        #deleteAccountBtn {
+            background: transparent;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        #changePasswordBtn:hover {
+            color: #0056b3;
+        }
+
+        #deleteAccountBtn {
+            color: #dc3545;
+        }
+
+        #deleteAccountBtn:hover {
+            color: #b02a37;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 220px;
+            background: white;
+            padding: 20px;
+            height: calc(100vh - 60px);
+            border-right: 1px solid #ddd;
+        }
+        #createTag {
+            width: 28px;
+            height: 28px;
+            background: #007bff;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+        .tags-title {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        /* Tag Container */
+        #tagList div {
+            background: #fff;
+            padding: 10px;
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Generic Tag Buttons */
+        .tag-action-btn {
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        /* Edit Button Style */
+        .edit-btn {
+            background-color: #4b7bff;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #2f5de0;
+        }
+
+        /* Delete Button Style */
+        .delete-btn {
+            background-color: #ff4b4b;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #e03a3a;
+        }
+
+        /* Hover grow effect */
+        .tag-action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Sidebar action buttons */
+        .sidebar-actions {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        #showAllBtn {
+            background: #4f46e5;
+        }
+
+        #showAllBtn:hover {
+            background: #4338ca;
+        }
+
+        #videosShortBtn {
+            background: #4f46e5;
+        }
+
+        #videosShortBtn:hover {
+            background: #4338ca;
+        }
+
+        #videosLongBtn {
+            background: #4f46e5;
+        }
+
+        #videosLongBtn:hover {
+            background: #4338ca;
+        }
+
+        #videosWithTagsBtn {
+            background: #007bff;
+        }
+
+        #videosWithTagsBtn:hover {
+            background: #0056cc;
+        }
+
+        #videosWithoutTagsBtn {
+            background: #6c757d;
+        }
+
+        #videosWithoutTagsBtn:hover {
+            background: #545b62;
+        }
+
+        /* Main */
+        main {
+            flex: 1;
+            padding: 30px;
+        }
+        .upload-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 450px;
+        }
+        #videoUrl {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        #uploadBtn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            cursor: pointer;
+            background: #007bff;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Video list layout */
+        #videoContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        /* Individual video card */
+        .video-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .video-item:hover {
+            transform: translateY(-4px);
+        }
+
+        /* Video title */
+        .video-item span {
+            margin-bottom: 10px;
+            font-weight: 500;
+            text-align: center;
+            color: #222;
+        }
+
+        /* Video player styling */
+        .video-item video {
+            width: 100%;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        #videoUrl {
+            box-sizing: border-box;
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap; /* makes it responsive on smaller screens */
+            align-items: flex-start;
+        }
+
+
+        .upload-section .upload-box {
+            flex: 1;
+            min-width: 300px;
+            max-width: 450px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<!-- Top header -->
+<header>
+    <div class="logo">Media-Store</div>
+
+    <div class="profile">
+        <span id="userName"></span>
+        <button id="changePasswordBtn">Change Password</button>
+        <button id="deleteAccountBtn">Delete Account</button>
+        <button id="signOutBtn">Sign Out</button>
+    </div>
+</header>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside>
+        <div class="tags-title">
+            My Tags
+            <button id="createTag">+</button>
+        </div>
+        <br>
+        <!-- Tags list -->
+        <div id="tagList"></div>
+        <div class="sidebar-actions">
+            <button id="showAllBtn" class="sidebar-btn">Show All Videos</button>
+            <button id="videosShortBtn" class="sidebar-btn">Short Videos (60s or less)</button>
+            <button id="videosLongBtn" class="sidebar-btn">Long Videos (over 60s)</button>
+            <button id="videosWithTagsBtn" class="sidebar-btn">Videos With Tags</button>
+            <button id="videosWithoutTagsBtn" class="sidebar-btn">Videos Without Tags</button>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main>
+        <div class="upload-section">
+            <!-- Single Video Upload -->
+            <section class="upload-box">
+                <h2>Upload individual video</h2>
+                <input id="videoUrl" type="text" placeholder="Paste here your link...">
+                <button id="uploadBtn">Upload</button>
+            </section>
+
+            <!-- WhatsApp Chat Upload -->
+            <section class="upload-box">
+                <h2>WhatsApp Chat</h2>
+
+                <div id="whatsappUploadArea" style="border: 2px dashed #ccc; border-radius: 10px; text-align: center; padding: 25px;">
+                    <p>📄 Drag or select the exported chat file</p>
+                    <input type="file" id="whatsappFile" accept=".txt" style="display:none;">
+                    <label for="whatsappFile" style="color:#007bff; cursor:pointer; text-decoration:underline;">Select File</label>
+                </div>
+
+                <button id="processChatBtn" style="width:100%; margin-top:15px; padding:10px; background:#28a745; border:none; color:white; font-weight:bold; border-radius:6px; cursor:pointer;">
+                    Process Chat
+                </button>
+            </section>
+        </div>
+
+        <!-- Videos section -->
+        <div class="video-header">
+            <h3>Last 10 videos uploaded</h3>
+        </div>
+        <div id="videoContainer" style="margin-top: 30px;"></div>
+    </main>
+
+</div>
+
+<!-- Tag Selection Modal -->
+<div id="tag-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); color: white; z-index: 50; align-items: center; justify-content: center;">
+    <div style="background: #111; padding: 20px; border-radius: 12px; max-width: 320px; width: 90%; text-align: left;">
+        <h2 style="margin-bottom: 10px;">Manage Tags</h2>
+        <div id="tag-list" style="max-height: 300px; overflow-y: auto;"></div>
+        <button id="close-modal" class="control-button" style="margin-top: 15px;">Close</button>
+    </div>
+</div>
+
+<script type="module" src="../java-script/getprofilename.js"></script>
+<script type="module" src="../java-script/loadtags.js"></script>
+<script type="module" src="../java-script/createtag.js"></script>
+<script type="module" src="../java-script/edittag.js"></script>
+<script type="module" src="../java-script/deletetag.js"></script>
+<script type="module" src="../java-script/addvideobylink.js"></script>
+<script type="module" src="../java-script/addsinglevideotolibrary.js"></script>
+<script type="module" src="../java-script/processwhatsappchat.js"></script>
+<script type="module" src="../java-script/showallvideos.js"></script>
+<script type="module" src="../java-script/showshortvideos.js"></script>
+<script type="module" src="../java-script/showlongvideos.js"></script>
+<script type="module" src="../java-script/showvideoswithtags.js"></script>
+<script type="module" src="../java-script/showvideoswithouttags.js"></script>
+<script type="module" src="../java-script/deleteaccount.js"></script>
+<script type="module" src="../java-script/changepassword.js"></script>
+<script type="module" src="../java-script/signout.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const fileInput = document.getElementById("whatsappFile");
+        const uploadArea = document.getElementById("whatsappUploadArea");
+        const uploadText = document.getElementById("uploadText");
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+
+                // Change style and text
+                uploadArea.style.borderColor = "#28a745";
+                uploadArea.style.backgroundColor = "#e8fbe8";
+                uploadText.textContent = `✅ File selected: ${file.name}`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

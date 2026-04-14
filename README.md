@@ -12,6 +12,8 @@ A self-hosted video downloader and organizer that lets you save videos from **Yo
 - **Download to device** -- download any video from your library to your local machine
 - **User accounts** -- sign up, log in, change password, delete account. Each user has their own isolated library
 
+https://github.com/user-attachments/assets/c54b0689-10a6-4972-8616-710ad7faaee5
+
 ## Architecture
 
 The project is a **two-module Maven monorepo**:

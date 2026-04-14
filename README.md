@@ -159,7 +159,3 @@ dbPassword=sa
 | Instagram | `instagram.com`, `instagr.am` |
 | TikTok | `tiktok.com` |
 | Facebook | `facebook.com`, `fb.watch` |
-
-## License
-
-This project is for personal and educational use.
